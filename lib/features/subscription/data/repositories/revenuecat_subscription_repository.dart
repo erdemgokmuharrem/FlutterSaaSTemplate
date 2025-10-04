@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_saas_starter/features/subscription/domain/models/subscription_status.dart';
 import 'package:flutter_saas_starter/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:flutter_saas_starter/core/config/config.dart';
@@ -12,10 +13,24 @@ class RevenueCatSubscriptionRepository implements SubscriptionRepository {
   Future<void> initialize(String userId) async {
     if (_initialized) return;
     
+    // Skip initialization on macOS (not fully supported yet)
+    if (!kIsWeb && Platform.isMacOS) {
+      Logger.warning('RevenueCat not fully supported on macOS - skipping initialization');
+      _initialized = true;
+      return;
+    }
+    
     try {
-      final apiKey = Platform.isIOS
-          ? AppConfig.revenueCatApiKeyIos
-          : AppConfig.revenueCatApiKeyAndroid;
+      String apiKey;
+      
+      if (kIsWeb) {
+        // Web uses Android key
+        apiKey = AppConfig.revenueCatApiKeyAndroid;
+      } else if (Platform.isIOS) {
+        apiKey = AppConfig.revenueCatApiKeyIos;
+      } else {
+        apiKey = AppConfig.revenueCatApiKeyAndroid;
+      }
       
       final configuration = PurchasesConfiguration(apiKey);
       await Purchases.configure(configuration);
@@ -25,7 +40,8 @@ class RevenueCatSubscriptionRepository implements SubscriptionRepository {
       Logger.info('RevenueCat initialized for user: $userId');
     } catch (e, stackTrace) {
       Logger.error('Failed to initialize RevenueCat', error: e, stackTrace: stackTrace);
-      rethrow;
+      // Don't rethrow - allow app to continue without RevenueCat
+      _initialized = true;
     }
   }
   

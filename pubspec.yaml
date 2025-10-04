@@ -17,17 +17,17 @@ dependencies:
   riverpod_annotation: ^2.3.3
   
   # Firebase
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.15.3
-  cloud_firestore: ^4.13.6
-  firebase_messaging: ^14.7.9
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_messaging: ^15.1.3
   
   # Auth
   google_sign_in: ^6.1.6
   sign_in_with_apple: ^5.0.0
   
-  # RevenueCat
-  purchases_flutter: ^6.7.0
+  # RevenueCat (Works on iOS, Android, Web - Limited on macOS)
+  purchases_flutter: ^6.30.2
   
   # Navigation
   go_router: ^12.1.3
@@ -43,7 +43,7 @@ dependencies:
   # UI
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.0
-  intl: ^0.18.1
+  intl: ^0.20.2
   
   # Utils
   equatable: ^2.0.5

@@ -7,6 +7,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_saas_starter/core/theme/app_theme.dart';
 import 'package:flutter_saas_starter/core/router/app_router.dart';
 import 'package:flutter_saas_starter/core/utils/logger.dart';
+import 'package:flutter_saas_starter/core/config/firebase_options.dart';
 import 'package:flutter_saas_starter/shared/providers/theme_provider.dart';
 import 'package:flutter_saas_starter/shared/providers/locale_provider.dart';
 import 'package:flutter_saas_starter/features/auth/presentation/providers/auth_provider.dart';
@@ -15,28 +16,42 @@ import 'package:flutter_saas_starter/features/subscription/presentation/provider
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  bool firebaseInitialized = false;
+  
   try {
-    // Initialize Firebase
-    await Firebase.initializeApp();
+    // Initialize Firebase with demo options
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     Logger.info('Firebase initialized successfully');
-    
+    firebaseInitialized = true;
+  } catch (e, stackTrace) {
+    Logger.warning('Firebase initialization failed - running in DEMO MODE', error: e);
+    Logger.warning('To use full features, please configure Firebase (see FIREBASE_SETUP.md)');
+  }
+  
+  try {
     // Initialize Hive
     await Hive.initFlutter();
     Logger.info('Hive initialized successfully');
-    
-    runApp(
-      const ProviderScope(
-        child: MyApp(),
-      ),
-    );
   } catch (e, stackTrace) {
-    Logger.error('Failed to initialize app', error: e, stackTrace: stackTrace);
-    rethrow;
+    Logger.error('Hive initialization failed', error: e, stackTrace: stackTrace);
   }
+  
+  runApp(
+    ProviderScope(
+      child: MyApp(isFirebaseEnabled: firebaseInitialized),
+    ),
+  );
 }
 
 class MyApp extends ConsumerStatefulWidget {
-  const MyApp({super.key});
+  final bool isFirebaseEnabled;
+  
+  const MyApp({
+    super.key,
+    this.isFirebaseEnabled = false,
+  });
 
   @override
   ConsumerState<MyApp> createState() => _MyAppState();
@@ -46,7 +61,11 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initializeSubscriptions();
+    if (widget.isFirebaseEnabled) {
+      _initializeSubscriptions();
+    } else {
+      Logger.info('Running in DEMO MODE - Firebase features disabled');
+    }
   }
 
   Future<void> _initializeSubscriptions() async {
